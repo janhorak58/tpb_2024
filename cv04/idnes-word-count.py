@@ -23,32 +23,9 @@ words = input.flatMap(lambda line: line.split()) \
 
 wordCounts = words.map(lambda word: (word, 1)) \
                   .reduceByKey(lambda x, y: x + y)
+                  
 sortedWordCounts = wordCounts.map(lambda x: (x[1], x[0])) \
                              .sortByKey(ascending=False)
-top20Words = sortedWordCounts.take(20)
-for count, word in top20Words:
+
+for count, word in sortedWordCounts.take(20):
     print(f"{word} {count}")
-
-"""
-zahraničí 39989
-domácí 34806
-jejich 34261
-například 32304
-mluvčí 32145
-protože 28499
-policie 28004
-uvedla 26407
-procent 20652
-několik 19984
-dalších 19500
-prezident 19039
-ministr 18522
-kterou 17827
-zhruba 16988
-strany 16699
-případě 16513
-jednání 15763
-ministerstvo 15755
-všechny 15122
-
-"""
