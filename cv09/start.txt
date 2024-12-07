@@ -1,0 +1,7 @@
+docker compose down
+docker-compose up --scale taskmanager=2
+docker exec -it jobmanager bash
+
+python most-hyped-movies.py
+
+python pyflink-kafka-example.py
