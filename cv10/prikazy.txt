@@ -1,0 +1,96 @@
+
+
+====== Vypište 10 libovolných uzlů  =========
+
+MATCH (n)
+RETURN n
+LIMIT 10
+
+
+====== Vypište 10 libovolných filmů  =========
+
+MATCH (m:Movie)
+RETURN m
+LIMIT 10
+
+
+====== Vypište herce, kteří hráli ve filmu The Matrix, seřaďte je podle jména  =========
+
+MATCH (a:Person)-[r:ACTED_IN]->(m:Movie {title: "The Matrix"})
+RETURN a, r, m
+ORDER BY a.name
+
+
+====== Vypište filmy, ve kterých hrál Keanu Reeves  =========
+
+MATCH (a:Person {name: "Keanu Reeves"})-[:ACTED_IN]->(m:Movie)
+RETURN a, m
+
+
+====== Vypište počet filmů, ve kterých hrál Keanu Reeves  =========
+
+MATCH (a:Person {name: "Keanu Reeves"})-[:ACTED_IN]->(m:Movie)
+RETURN COUNT(m) AS numberOfMovies
+
+
+====== Vypište filmy, ve kterých hrál Keanu Reeves a Carrie-Anne Moss  =========
+
+MATCH (a1:Person {name: "Keanu Reeves"})-[r:ACTED_IN]->(m:Movie)<-[:ACTED_IN]-(a2:Person {name: "Carrie-Anne Moss"})
+RETURN m, r, a1, a2
+
+
+====== Přidejte nový film John Wick, ve kterém bude hrát Keanu Reeves  =========
+
+CREATE (m:Movie {title: "John Wick"})
+WITH m
+MATCH (a:Person {name: "Keanu Reeves"})
+CREATE (a)-[:ACTED_IN]->(m)
+
+
+Upravte herce Keanu Reeves, přidejte libovolnou vlastnost
+MATCH (a:Actor {name: "Keanu Reeves"})
+SET a.age = 59
+RETURN a
+
+
+
+========= BONUS ==========
+
+
+1. Vypište průměrný výdělek herců
+Tento dotaz vypočítá průměrnou hodnotu vlastnosti earnings na vztazích ACTED_IN:
+
+MATCH (:Person)-[a:ACTED_IN]->(:Movie)
+RETURN AVG(a.earnings) AS averageEarnings
+
+
+2. Nalezněte kontakty Toma Hankse, které splňují podmínky
+Dotaz vrátí kontakty Toma Hankse narozené v roce 1960 nebo později, které vydělaly alespoň $10M za film. Výsledky budou seřazeny podle výdělku:
+
+
+MATCH (tom:Person {name: 'Tom Hanks'})-[:HAS_CONTACT]->(contact:Person)-[a:ACTED_IN]->(:Movie)
+WHERE contact.born >= 1960 AND a.earnings >= 10000000
+RETURN contact.name AS name, contact.born AS birthYear, a.earnings AS earnings
+ORDER BY a.earnings DESC
+
+
+3. Přidejte label Rich hercům, kteří vydělali více než $50M
+Tento dotaz nejprve spočítá celkový výdělek každého herce a poté přidá těmto hercům nový label Rich:
+
+
+MATCH (actor:Person)-[a:ACTED_IN]->(:Movie)
+WITH actor, SUM(a.earnings) AS totalEarnings
+WHERE totalEarnings > 50000000
+SET actor:Rich
+RETURN actor.name AS richActors, totalEarnings
+
+
+4. Dotaz pro Keanu Reeves a zhlédnutí Top Gun
+Tento dotaz zajistí vytvoření vztahu VIEWED mezi Keanu Reeves a filmem Top Gun, pokud vztah neexistuje. Zároveň bude inkrementovat počet zhlédnutí:
+
+
+MATCH (keanu:Person {name: 'Keanu Reeves'}), (topGun:Movie {title: 'Top Gun'})
+MERGE (keanu)-[v:VIEWED]->(topGun)
+ON CREATE SET v.count = 1
+ON MATCH SET v.count = v.count + 1
+RETURN keanu.name AS viewer, topGun.title AS movie, v.count AS viewCount
